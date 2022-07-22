@@ -18,6 +18,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.mediarouter.app.MediaRouteButton
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -156,7 +158,15 @@ fun FullscreenVideo(
 
     DisposableEffect(Unit) {
         val originalOrientation = activity.requestedOrientation
+
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+        // currently there doesn't seem to be a more compose-specific solution
+        // https://stackoverflow.com/questions/73063646/how-to-best-change-systembarsbehavior-with-jetpack-compose?noredirect=1#comment129045145_73063646
+        with(WindowCompat.getInsetsController(activity.window, activity.window.decorView)) {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
         systemUiController.isSystemBarsVisible = false // Status & Navigation bars
         onDispose {
             // restore original orientation when view disappears
@@ -184,7 +194,7 @@ fun FullscreenVideo(
 
                     initialize(object : AbstractYouTubePlayerListener() {
                         override fun onReady(youTubePlayer: YouTubePlayer) {
-                            //enterFullScreen()
+                            enterFullScreen()
                         }
 
                         override fun onVideoId(youTubePlayer: YouTubePlayer, videoId: String) {
