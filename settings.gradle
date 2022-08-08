@@ -13,7 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../android-youtube-player")
-
 rootProject.name = "OmCast"
 include ':app'

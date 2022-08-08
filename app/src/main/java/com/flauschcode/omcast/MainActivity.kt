@@ -162,7 +162,7 @@ fun FullscreenVideo(
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         // currently there doesn't seem to be a more compose-specific solution
-        // https://stackoverflow.com/questions/73063646/how-to-best-change-systembarsbehavior-with-jetpack-compose?noredirect=1#comment129045145_73063646
+        // https://stackoverflow.com/questions/73063646/how-to-best-change-systembarsbehavior-with-jetpack-compose
         with(WindowCompat.getInsetsController(activity.window, activity.window.decorView)) {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
