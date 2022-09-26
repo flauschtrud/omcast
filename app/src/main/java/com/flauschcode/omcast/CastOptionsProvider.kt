@@ -7,7 +7,7 @@ import com.google.android.gms.cast.framework.OptionsProvider
 
 internal class CastOptionsProvider : OptionsProvider {
 
-    private val receiverId = BuildConfig.RECEIVER_ID
+    private val receiverId = BuildConfig.RECEIVER_ID // TODO make configurable
 
     override fun getCastOptions(appContext: Context): CastOptions {
         return CastOptions.Builder()

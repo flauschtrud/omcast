@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -18,12 +20,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.mediarouter.app.MediaRouteButton
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -45,17 +49,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO
-        val playlists = listOf(
-            "PLdJZKgGi4pKDRGaIYi5KjblA21C_qZyw1", // Yin Yoga
-            "PLOhPBXxBh2qBjv9dAzWreaoXwbxpRVALd", // Inner Garden Meditations
-            "PLui6Eyny-Uzyp5P3Vcuv5qCHQOC8W6grN", // YWA Move
-            "PLui6Eyny-UzzJ4NSTesh4xRWg4ZWNz5s4", // YWA Breath
-            "PLui6Eyny-UzzFFfpiil94CUrWKVMaqmkm", // YWA Home
-            "PLui6Eyny-UzzkcCfrpXcgUS0wfEGA-kej", // YWA Dedicate
-            "PLui6Eyny-UzwIo3OBXV_KlsWaxUANvWhh" // YWA True
-        )
-
         setContent {
             AppCompatTheme {
                 // A surface container using the 'background' color from the theme
@@ -64,13 +57,28 @@ class MainActivity : AppCompatActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     val navController = rememberNavController()
+
+                    var playlists by rememberPreference(key = PLAYLIST_IDS, defaultValue = "")
                     NavHost(navController = navController, startDestination = "list") {
                         composable("list") {
-                            OmCastScreen(playlists = playlists, navController = navController)
+                           OmCastScreen(playlists = playlists.split("\n"), navController = navController)
+
                         }
                         composable("fullscreen/{playlistId}") { backStackEntry ->
                             FullscreenVideo(playlistId = backStackEntry.arguments?.getString("playlistId")) {
                                     videoId -> chromecastBridge?.playVideo(videoId) }
+                        }
+                        dialog(route = "settings",
+                            dialogProperties = DialogProperties(
+                                dismissOnBackPress = true,
+                                dismissOnClickOutside = true
+                            )
+                        ) {
+                            UserPreferencesDialog(
+                                playlists,
+                                { playlists = it },
+                                { navController.popBackStack() }
+                            )
                         }
                     }
 
@@ -102,6 +110,10 @@ fun OmCastScreen(
                 },
                 actions = {
                     MyMediaRouteButton()
+
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Icon(Icons.Default.Settings, stringResource(id = R.string.settings))
+                    }
                 }
             )
         }
@@ -123,27 +135,29 @@ fun MyYouTubePlayerView(
     onVideoClicked: (playlistId: String) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    AndroidView(
-        modifier = Modifier.pointerInteropFilter { event ->
-            if (event.action == MotionEvent.ACTION_UP) onVideoClicked(playlistId)
-            true
-        },
-        factory = { context ->
-            YouTubePlayerView(context).apply {
-                enableAutomaticInitialization = false
+    key(playlistId) { // makes sure that a new YouTubePlayerView is created on recomposition
+        AndroidView(
+            modifier = Modifier.pointerInteropFilter { event ->
+                if (event.action == MotionEvent.ACTION_UP) onVideoClicked(playlistId)
+                true
+            },
+            factory = { context ->
+                YouTubePlayerView(context).apply {
+                    enableAutomaticInitialization = false
 
-                val iFramePlayerOptions: IFramePlayerOptions = IFramePlayerOptions.Builder()
-                    .controls(0)
-                    .listType("playlist")
-                    .list(playlistId)
-                    .build()
+                    val iFramePlayerOptions: IFramePlayerOptions = IFramePlayerOptions.Builder()
+                        .controls(0)
+                        .listType("playlist")
+                        .list(playlistId)
+                        .build()
 
-                lifecycleOwner.lifecycle.addObserver(this)
+                    lifecycleOwner.lifecycle.addObserver(this)
 
-                initialize(object : AbstractYouTubePlayerListener() {}, true, iFramePlayerOptions)
+                    initialize(object : AbstractYouTubePlayerListener() {}, true, iFramePlayerOptions)
+                }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
