@@ -3,6 +3,7 @@ package com.flauschcode.omcast
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -59,6 +60,8 @@ class MainActivity : AppCompatActivity() {
                     val navController = rememberNavController()
 
                     var playlists by rememberPreference(key = PLAYLIST_IDS, defaultValue = "")
+                    var receiverId by rememberPreference(key = RECEIVER_APPLICATION_ID, defaultValue = "")
+
                     NavHost(navController = navController, startDestination = "list") {
                         composable("list") {
                            OmCastScreen(playlists = playlists.split("\n"), navController = navController)
@@ -77,6 +80,8 @@ class MainActivity : AppCompatActivity() {
                             UserPreferencesDialog(
                                 playlists,
                                 { playlists = it },
+                                receiverId,
+                                { receiverId = it },
                                 { navController.popBackStack() }
                             )
                         }
@@ -90,7 +95,11 @@ class MainActivity : AppCompatActivity() {
             this,
             googlePlayServicesAvailabilityRequestCode
         ) {
-            chromecastBridge = ChromecastBridge(this)
+            try {
+                chromecastBridge = ChromecastBridge(this)
+            } catch (exception: Throwable) {
+                Log.e(javaClass.simpleName, "Could not create ChromecastBridge: ${exception.message}.")
+            }
         }
     }
 

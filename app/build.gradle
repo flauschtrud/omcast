@@ -3,11 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-Properties properties = new Properties()
-if (rootProject.file("local.properties").exists()) {
-    properties.load(rootProject.file("local.properties").newDataInputStream())
-}
-
 android {
     compileSdk 33
 
@@ -23,7 +18,6 @@ android {
             useSupportLibrary true
         }
 
-        buildConfigField("String", "RECEIVER_ID", "\"${properties.getProperty("receiverId")}\"")
     }
 
     buildTypes {

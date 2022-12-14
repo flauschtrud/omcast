@@ -12,6 +12,7 @@ class ChromecastBridge(context: Context) {
 
     private var myYouTubePlayer: YouTubePlayer? = null
 
+    // TODO Fehler abfangen bei invalider ReceiverID
     init {
         ChromecastYouTubePlayerContext(CastContext.getSharedInstance(context).sessionManager,
             object: ChromecastConnectionListener {
