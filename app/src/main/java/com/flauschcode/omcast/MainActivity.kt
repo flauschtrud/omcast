@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
@@ -68,8 +70,9 @@ class MainActivity : AppCompatActivity() {
 
                         }
                         composable("fullscreen/{playlistId}") { backStackEntry ->
-                            FullscreenVideo(playlistId = backStackEntry.arguments?.getString("playlistId")) {
-                                    videoId -> chromecastBridge?.playVideo(videoId) }
+                            backStackEntry.arguments?.getString("playlistId")?.let {
+                                FullscreenVideo(playlistId = it) { videoId -> chromecastBridge?.playVideo(videoId) }
+                            }
                         }
                         dialog(route = "settings",
                             dialogProperties = DialogProperties(
@@ -171,10 +174,10 @@ fun MyYouTubePlayerView(
 
 @Composable
 fun FullscreenVideo(
-    playlistId: String?,
+    playlistId: String,
     onVideoSelected: (videoId: String) -> Unit,
 ) {
-    val activity = LocalContext.current as Activity // TODO LocalConfiguration?
+    val activity = LocalContext.current as Activity
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val systemUiController = rememberSystemUiController()
@@ -210,7 +213,7 @@ fun FullscreenVideo(
                     val iFramePlayerOptions: IFramePlayerOptions = IFramePlayerOptions.Builder()
                         .controls(0)
                         .listType("playlist")
-                        .list(playlistId!!) // TODO ??
+                        .list(playlistId)
                         .build()
 
                     lifecycleOwner.lifecycle.addObserver(this)
