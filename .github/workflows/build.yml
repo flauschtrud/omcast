@@ -1,0 +1,22 @@
+name: Android CI
+
+on:
+  push
+
+jobs:
+  apk:
+    name: Generate APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: omcast-release-unsigned-${{github.run_number}}
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
