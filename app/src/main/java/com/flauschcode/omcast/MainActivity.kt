@@ -44,8 +44,6 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 
 class MainActivity : AppCompatActivity() {
 
-    // TODO stop playing when choosing to cast
-
     private val googlePlayServicesAvailabilityRequestCode = 1
     private var chromecastBridge: ChromecastBridge? = null
 
@@ -71,7 +69,10 @@ class MainActivity : AppCompatActivity() {
                         }
                         composable("fullscreen/{playlistId}") { backStackEntry ->
                             backStackEntry.arguments?.getString("playlistId")?.let {
-                                FullscreenVideo(playlistId = it) { videoId -> chromecastBridge?.playVideo(videoId) }
+                                FullscreenVideo(playlistId = it) { youTubePlayer, videoId -> chromecastBridge?.let {
+                                    it.playVideo(videoId)
+                                    youTubePlayer.pause()
+                                } }
                             }
                         }
                         dialog(route = "settings",
@@ -175,7 +176,7 @@ fun MyYouTubePlayerView(
 @Composable
 fun FullscreenVideo(
     playlistId: String,
-    onVideoSelected: (videoId: String) -> Unit,
+    onVideoId: (youTubePlayer: YouTubePlayer, videoId: String) -> Unit,
 ) {
     val activity = LocalContext.current as Activity
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -224,7 +225,7 @@ fun FullscreenVideo(
                         }
 
                         override fun onVideoId(youTubePlayer: YouTubePlayer, videoId: String) {
-                            onVideoSelected(videoId)
+                            onVideoId(youTubePlayer, videoId)
                         }
                     }, true, iFramePlayerOptions)
                 }
